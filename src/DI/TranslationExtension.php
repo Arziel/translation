@@ -50,6 +50,7 @@ class TranslationExtension extends CompilerExtension
 			'debugger' => Expect::bool(interface_exists(IBarPanel::class)),
 			'factory' => Expect::string()->default(null),
 			'logger' => Expect::mixed()->default(null),
+			'latteFilters' => Expect::string()->default(null),
 			'locales' => Expect::structure([
 				'whitelist' => Expect::array()->default(null)->assert(function (array $array): bool {
 					if (count($array) !== count(array_unique($array))) {
@@ -102,6 +103,7 @@ class TranslationExtension extends CompilerExtension
 				Header::class,
 			];
 		}
+
 
 		// LocaleResolver
 		$localeResolver = $builder->addDefinition($this->prefix('localeResolver'))
@@ -231,9 +233,14 @@ class TranslationExtension extends CompilerExtension
 
 		if ($latteFactoryName !== null) {
 			$iTranslator = $builder->getDefinitionByType(ITranslator::class);
-
-			$latteFilters = $builder->addDefinition($this->prefix('latte.filters'))
-				->setFactory(Filters::class);
+			
+			if ($this->config->latteFilters !== null) {
+				$latteFilters = $builder->addDefinition($this->prefix('latte.filters'))
+					->setFactory($this->config->latteFilters);
+			} else {
+				$latteFilters = $builder->addDefinition($this->prefix('latte.filters'))
+					->setFactory(Filters::class);
+			}
 
 			/** @var \Nette\DI\Definitions\FactoryDefinition $latteFactory */
 			$latteFactory = $builder->getDefinition($latteFactoryName);
